@@ -36,7 +36,7 @@ def format_address(address):
     return f"{line1}\n{line2}\n{line3}"
 
 # List of fonts to choose from
-FONT_LIST = ['Calibri', 'Arial', 'Verdana', 'Aptos Display','Cambria']
+FONT_LIST = ['Calibri', 'Arial', 'Aptos Display','Cambria']
 
 def set_advisor_font(doc, advisor_name):
     font_name = random.choice(FONT_LIST)
@@ -63,13 +63,22 @@ def add_consolidated_invoice_to_doc(doc, invoice_date, advisor, address, total_d
         from_para = doc.add_paragraph(f"From:\n{advisor}")
         for run in from_para.runs:
             run.font.name = font_name
-    
-    doc.add_paragraph("""To:
+
+    if int(year_folder.split('-')[0]) <= 2020:
+            from_address = """To:
 ELIXIR WEALTH MANAGEMENT PVT. LTD.
+OFFICE NO. 112, 1ST FLOOR,
+FORTUNE GEE BEE COMPLEX,
+VAPI DAMAN MAIN ROAD
+SOMNATH, DAMAN – 396210"""
+    else:  
+        from_address = """To:
+ELIXIR WEALTH MANAGEMENT PVT. LTD
 58 MITTAL CHAMBERS,
 228, NARIMAN POINT
-MUMBAI 400 021
-    """)
+MUMBAI 400 021"""
+    
+    doc.add_paragraph(from_address)
 
     instruction_paragraph = doc.add_paragraph()
     instruction_run = instruction_paragraph.add_run('INSTRUCTION NOTE')
@@ -171,8 +180,26 @@ def create_consolidated_invoices_for_advisor(grouped_data, address_data, year_fo
     font_name = set_advisor_font(doc, trading_advisor)  # Choose a font for the advisor
 
     for idx, (invoice_date, date_group) in enumerate(grouped_data.groupby('Invoice Date')):
-        first_row = date_group.iloc[0]
-        address = address_data[address_data['Name'] == first_row['TRADING ADVISOR']]['Address'].values
+        first_row = date_group.iloc[0].copy()
+    
+        # Strip the 'TRADING ADVISOR' column in the address_data DataFrame
+        address_data['TRADING ADVISOR'] = address_data['TRADING ADVISOR'].str.strip()
+        
+        # Strip the 'TRADING ADVISOR' column in the first_row DataFrame
+        first_row['TRADING ADVISOR'] = first_row['TRADING ADVISOR'].strip()
+        
+        # Find the address for the 'TRADING ADVISOR' in the first_row
+        address = address_data[address_data['TRADING ADVISOR'] == first_row['TRADING ADVISOR']]['ADDRESS'].values
+        
+        # If the address is not found, try to split the 'TRADING ADVISOR' value and match the first and last name
+        if len(address) == 0:
+            trading_advisor = first_row['TRADING ADVISOR']
+            trading_advisor_parts = trading_advisor.split()
+            if len(trading_advisor_parts) >= 2:
+                first_name = trading_advisor_parts[0]
+                last_name = trading_advisor_parts[-1]
+                address = address_data[(address_data['TRADING ADVISOR'].str.contains(first_name)) & (address_data['TRADING ADVISOR'].str.contains(last_name))]['ADDRESS'].values
+        
         address = address[0] if len(address) > 0 else 'Address not found'
 
         add_consolidated_invoice_to_doc(
@@ -188,15 +215,15 @@ def create_consolidated_invoices_for_advisor(grouped_data, address_data, year_fo
 
         add_consolidated_annexure_a_to_doc(doc, date_group, font_name)
 
-    payee_folder = os.path.join(year_folder, trading_advisor.replace(' ', '_'))
+    payee_folder = os.path.join(year_folder)
     os.makedirs(payee_folder, exist_ok=True)
     file_name = os.path.join(payee_folder, f"Combined_Invoice_{trading_advisor.replace(' ', '_')}.docx")
     doc.save(file_name)
     print(f"Consolidated Invoice saved: {file_name}")
 
 # Main execution logic
-file_path = 'Latest EW - Details of Professional Fees Paid for last 7 years.xlsx'
-address_file_path = 'EW Master.csv' 
+file_path = 'EW - Details of Professional Fees Paid for last 7 years.xlsx'
+address_file_path = 'EW Master (1).csv' 
 sheet_names = ['2017-18', '2018-19', '2019-20', '2020-21', '2021-22', '2023-24']
 
 address_data = pd.read_csv(address_file_path)
