@@ -117,7 +117,8 @@ MUMBAI 400 021"""
     total_row[2].text = format_amount(total_amount)
     total_row[2].paragraphs[0].runs[0].bold = True
 
-    doc.add_paragraph("""Terms & Conditions:
+    doc.add_paragraph("""
+Terms & Conditions:
 1) E&OE
 2) Please arrange to make the payments to payees as detailed in Annexure "A"
 3) Please arrange to pay the said amount within 10 working days.
