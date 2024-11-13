@@ -19,16 +19,20 @@ def read_word_file(word_file_path: str, ta_payee_mapping, sheet, payee_address):
         for paragraph in doc.paragraphs:
             
             if "April 01, ______" in paragraph.text:
-                paragraph.text = paragraph.text.replace("April 01, ______",f"April 01, {sheet}")
+                paragraph.text = paragraph.text.replace("April 01, ______",f"April 01, {sheet.split('-')[0]}")
             elif "April 01, _____" in paragraph.text:
-                paragraph.text = paragraph.text.replace("April 01, _____",f"April 01, {sheet}")
+                paragraph.text = paragraph.text.replace("April 01, _____",f"April 01, {sheet.split('-')[0]}")
             elif "To," in paragraph.text:
                 paragraph.text="To,"
-                paragraph.text = paragraph.text.replace("To,",f"""
-                To, 
-                {row['TRADING ADVISOR - CHANGED']},
-                {row['ADDRESS']}
-                """)
+                paragraph.text = paragraph.text.replace("To,"
+                ,f"""To,\n{row['TRADING ADVISOR - CHANGED']},\n{row['ADDRESS']}\n""")
+            # elif "Name:" in paragraph.text:
+            #     paragraph.text="Name:"
+            #     paragraph.text = paragraph.text.replace("Name:",f"Name:{owner_name}")
+            # elif "PAN:" in paragraph.text:
+            #     paragraph.text="PAN:"
+            #     paragraph.text = paragraph.text.replace("PAN:",f"PAN:{owner_pan}")
+
 
         filtered_ta_payee_mapping = ta_payee_mapping[ta_payee_mapping['TRADING ADVISOR'] == row['TRADING ADVISOR - CHANGED']]
 
