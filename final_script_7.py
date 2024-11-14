@@ -223,8 +223,8 @@ def create_consolidated_invoices_for_advisor(grouped_data, address_data, year_fo
     print(f"Consolidated Invoice saved: {file_name}")
 
 # Main execution logic
-file_path = 'EW - Details of Professional Fees Paid for last 7 years 1.xlsx'
-address_file_path = 'EW Master 1.csv' 
+file_path = 'EW - Details of Professional Fees Paid for last 7 years.xlsx'
+address_file_path = 'EW Master (1).csv' 
 sheet_names = ['2017-18', '2018-19', '2019-20', '2020-21', '2021-22', '2023-24']
 
 address_data = pd.read_csv(address_file_path)
