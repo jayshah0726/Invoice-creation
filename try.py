@@ -11,13 +11,28 @@ sheet_names = ['2017-18']
 
 address_data = pd.read_csv(address_file_path)
 
+def set_font(paragraph, font_name="Roboto", font_size=12):
+    for run in paragraph.runs:
+        run.font.name = font_name
+        run.font.size = Pt(font_size)
+
+        # This is needed to ensure font name works with Word documents
+        r = run._element
+        r.rPr.rFonts.set(qn("w:eastAsia"), font_name)
+
+# Function to set font for all text in a table
+def set_table_font(table, font_name="Arial", font_size=12):
+    for row in table.rows:
+        for cell in row.cells:
+            for paragraph in cell.paragraphs:
+                set_font(paragraph, font_name=font_name, font_size=font_size)
+
 for sheet in sheet_names:
     year_folder = sheet.replace('/', '-')
     # names and address - load from EW details of file
     master_data = pd.read_csv('EW Master 1.csv')
-    payee_address = master_data[['TRADING ADVISOR - CHANGED','ADDRESS']]
-    payee_address = payee_address.drop_duplicates()
     data = pd.read_excel('EW - Details of Professional Fees Paid for last 7 years 1.xlsx', sheet_name=sheet)
+    trading_advisor_list = list(data['TRADING ADVISOR'].drop_duplicates().dropna())
     filtered_data = data[['TRADING ADVISOR','PAYEE','PAN']]
     grouped_data_by_advisor = filtered_data.groupby('TRADING ADVISOR')
     ta_payee_mapping = grouped_data_by_advisor.agg({
@@ -25,39 +40,62 @@ for sheet in sheet_names:
         "PAYEE": list
     }).reset_index()
 
-    for index, row in payee_address.iterrows():
+    for current_trading_advisor in trading_advisor_list:
 
+        # for ele in master_data['Name']:
+        #     print(ele)
+        #     print(len(ele))
+
+        # break
+        current_trading_advisor = current_trading_advisor.strip()
+        print(current_trading_advisor)
+        if current_trading_advisor == "MITESH DOSHI":
+            current_trading_advisor = current_trading_advisor.replace(current_trading_advisor,"MITESH JAYANTIBHAI DOSHI")
+        elif current_trading_advisor == "MITUL MORABIA":
+            current_trading_advisor = current_trading_advisor.replace(current_trading_advisor,"MITUL MOHANLAL MORABIYA")
+        # find the address from master data for the current trading advisor
+        current_trading_advisor_new = master_data[(master_data['Name'] == current_trading_advisor) & (master_data['Year'] == '2017-18')]
+        current_trading_advisor_address = current_trading_advisor_new['Address'].iloc[0]
+        print(current_trading_advisor_address)
+        
         # Initialize the document
         doc = Document()
 
         # Title
-        doc.add_paragraph("ENGAGEMENT LETTER", style='Title').alignment = WD_ALIGN_PARAGRAPH.CENTER
+        title = doc.add_paragraph("ENGAGEMENT LETTER", style='Title')
+        title.alignment = 1
+        set_font(title,font_name="Roboto",font_size=14)
 
         # Date
-        doc.add_paragraph(f"April 01, {sheet.split('-')[0]}", style='Normal').alignment = WD_ALIGN_PARAGRAPH.RIGHT
+        date = doc.add_paragraph(f"April 01, {sheet.split('-')[0]}", style='Normal')
+        date.alignment = 0
+        set_font(date,font_name="Roboto",font_size=12)
 
         # Add To section
         to_para = doc.add_paragraph()
 
-        trading_advisor = row['TRADING ADVISOR - CHANGED']
-        to_para.add_run(f"To,\n{row['TRADING ADVISOR - CHANGED']},\n{row['ADDRESS']}\n")
+        to_para.add_run(f"To,\n{current_trading_advisor},\n{current_trading_advisor_address}\n")
+        set_font(to_para, font_name="Roboto", font_size=12)
 
         # Subject line
         subject_para = doc.add_paragraph()
         subject_para.add_run("Subject: Appointment as Trading Advisor\n\n").bold = True
+        set_font(subject_para, font_name="Roboto", font_size=12)
 
         # Introduction
-        doc.add_paragraph(
+        intro = doc.add_paragraph(
             "Elixir Wealth Management Private Limited (hereinafter referred to as “the Company”) is a company incorporated under the erstwhile provisions of the Companies Act, 1956 carrying on the business of securities trading across various market segments."
         )
+        set_font(intro, font_name="Roboto", font_size=12)
 
         # Content paragraphs
-        doc.add_paragraph(
+        content = doc.add_paragraph(
             "Considering your expertise in the subject matter, the Company is desirous of appointing your goodself as a trading advisor (hereinafter referred to as “TA”) with respect to its trading operations and undertake trading activities on its behalf including but not limited to trading, jobbing, arbitrage, hedging etc."
         )
+        set_font(content, font_name="Roboto", font_size=12)
 
         # Adding "Terms and Conditions" title
-        doc.add_paragraph("The terms and conditions for your appointment would be as under:", style='Heading 1')
+        doc.add_paragraph("The terms and conditions for your appointment would be as under: \n", style='Heading 1')
 
         # List of terms and conditions as numbered list
         terms_and_conditions = [
@@ -79,6 +117,7 @@ for sheet in sheet_names:
         # Add each term as a numbered point
         for term in terms_and_conditions:
             paragraph = doc.add_paragraph(term, style='List Number')
+            set_font(paragraph, font_name="Roboto", font_size=12)
 
         # Signature section
         sign_table = doc.add_table(rows=1, cols=2)
@@ -86,20 +125,22 @@ for sheet in sheet_names:
         sign_table.autofit = True
 
         sign_table.cell(0, 0).text = "For Elixir Wealth Management Pvt Ltd,\n\n\n\nDipan Mehta\nDirector"
-        sign_table.cell(0, 1).text = "I Accept\n\n\n\nName:\nPAN :"
+        sign_table.cell(0, 1).text = f"I Accept\n\n\n\nName: Dipan Mehta \nPAN : FFCPM9766K "
+
+        set_table_font(sign_table,font_name="Roboto",font_size=12)
 
         # Annexure A
         doc.add_paragraph("\n\nAnnexure A", style='Heading 1')
-        doc.add_paragraph(
+        members = doc.add_paragraph(
             "The following is the list of team members of the TA presently working with him which may change from time to time as per commercial prudence of the TA."
         )
+        set_font(members, font_name="Roboto", font_size=12)
 
         # table in the end
-        filtered_ta_payee_mapping = ta_payee_mapping[ta_payee_mapping['TRADING ADVISOR'] == row['TRADING ADVISOR - CHANGED']]
+        filtered_ta_payee_mapping = ta_payee_mapping[ta_payee_mapping['TRADING ADVISOR'] == current_trading_advisor]
 
         for index,each_row in filtered_ta_payee_mapping.iterrows():
             trading_advisor = each_row['TRADING ADVISOR']
-            doc.save(f'sample_output_{trading_advisor}.docx')
             pan_list = each_row["PAN"]
             payee_list = each_row['PAYEE']
             pan_payee_dict = {}
@@ -122,5 +163,7 @@ for sheet in sheet_names:
                     modified_row[0].text = str(key)
                     modified_row[1].text = str(value)
 
+                set_table_font(table,font_name="Roboto",font_size=12)
+
         # Save the document
-        doc.save(f"Engagement_Letter_{trading_advisor}.docx")
+        doc.save(f"EL(2017-18)/Engagement_Letter_{trading_advisor}.docx")

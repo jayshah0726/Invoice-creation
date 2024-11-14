@@ -38,6 +38,7 @@ def read_word_file(word_file_path: str, ta_payee_mapping, sheet, payee_address):
 
         for index,each_row in filtered_ta_payee_mapping.iterrows():
             trading_advisor = each_row['TRADING ADVISOR']
+            doc.save(f'sample_output_{trading_advisor}.docx')
             pan_list = each_row["PAN"]
             payee_list = each_row['PAYEE']
             pan_payee_dict = {}
