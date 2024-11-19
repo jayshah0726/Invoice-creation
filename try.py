@@ -6,8 +6,8 @@ from docx.oxml.ns import qn
 import pandas as pd
 
 file_path = 'EW - Details of Professional Fees Paid for last 7 years.xlsx'
-address_file_path = 'EW Master 1.csv' 
-sheet_names = ['2017-18']
+address_file_path = 'EW Master 1(Master Data).csv' 
+sheet_names = ['2023-24']
 
 address_data = pd.read_csv(address_file_path)
 
@@ -30,7 +30,7 @@ def set_table_font(table, font_name="Arial", font_size=12):
 for sheet in sheet_names:
     year_folder = sheet.replace('/', '-')
     # names and address - load from EW details of file
-    master_data = pd.read_csv('EW Master 1.csv')
+    master_data = pd.read_csv('EW Master 1(Master Data).csv')
     data = pd.read_excel('EW - Details of Professional Fees Paid for last 7 years 1.xlsx', sheet_name=sheet)
     trading_advisor_list = list(data['TRADING ADVISOR'].drop_duplicates().dropna())
     filtered_data = data[['TRADING ADVISOR','PAYEE','PAN']]
@@ -54,7 +54,7 @@ for sheet in sheet_names:
         elif current_trading_advisor == "MITUL MORABIA":
             current_trading_advisor = current_trading_advisor.replace(current_trading_advisor,"MITUL MOHANLAL MORABIYA")
         # find the address from master data for the current trading advisor
-        current_trading_advisor_new = master_data[(master_data['Name'] == current_trading_advisor) & (master_data['Year'] == '2017-18')]
+        current_trading_advisor_new = master_data[(master_data['Name'] == current_trading_advisor)]
         current_trading_advisor_address = current_trading_advisor_new['Address'].iloc[0]
         print(current_trading_advisor_address)
         
@@ -84,7 +84,7 @@ for sheet in sheet_names:
 
         # Introduction
         intro = doc.add_paragraph(
-            "Elixir Wealth Management Private Limited (hereinafter referred to as “the Company”) is a company incorporated under the erstwhile provisions of the Companies Act, 1956 carrying on the business of securities trading across various market segments."
+            "Elixir Equities Pvt Ltd (hereinafter referred to as “the Company”) is a company incorporated under the erstwhile provisions of the Companies Act, 1956 carrying on the business of securities trading across various market segments."
         )
         set_font(intro, font_name="Roboto", font_size=12)
 
@@ -111,7 +111,7 @@ for sheet in sheet_names:
             "Nothing in this arrangement shall constitute or be deemed to constitute a partnership, relationship of principal and agent or employer and employee between any of the parties, and none of them shall have any authority to bind any of the other parties in any way except for the purposes of the business of the Company.",
             "You or your team members shall not undertake any personal trading in the Unique Client Code of the Company under any circumstances. This shall be construed as 'unauthorized' trading activity and liable for damages by the Company.",
             "You and your team shall hereby comply with all the applicable rules and regulations, without limitation to, SEBI (Prohibition of Fraudulent and Unfair Trade Practices Relating to Securities Market) Regulations, Exchange guidelines and regulations, and any amendments and changes thereto, or any other act/s, and any such guidelines as may be prescribed from time to time by the Company.",
-            "This arrangement shall be for one year from April 01, 2017, but the Company reserves the right to terminate at any time without giving any prior notice or modify any terms and conditions of this letter from time to time as may be deemed necessary by the Company."
+            "This arrangement shall be for one year from April 01, 2023, but the Company reserves the right to terminate at any time without giving any prior notice or modify any terms and conditions of this letter from time to time as may be deemed necessary by the Company."
         ]
 
         # Add each term as a numbered point
@@ -124,7 +124,7 @@ for sheet in sheet_names:
         sign_table.style = 'Table Grid'
         sign_table.autofit = True
 
-        sign_table.cell(0, 0).text = "For Elixir Wealth Management Pvt Ltd,\n\n\n\nDipan Mehta\nDirector"
+        sign_table.cell(0, 0).text = "For Elixir Equities Pvt Ltd,\n\n\n\nDipan Mehta\nDirector"
         sign_table.cell(0, 1).text = f"I Accept\n\n\n\nName: Dipan Mehta \nPAN : FFCPM9766K "
 
         set_table_font(sign_table,font_name="Roboto",font_size=12)
@@ -166,4 +166,4 @@ for sheet in sheet_names:
                 set_table_font(table,font_name="Roboto",font_size=12)
 
         # Save the document
-        doc.save(f"EL(2017-18)/Engagement_Letter_{trading_advisor}.docx")
+        doc.save(f"EL(2023-24)/Engagement_Letter_{trading_advisor}.docx")
