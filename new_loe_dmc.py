@@ -7,8 +7,8 @@ import pandas as pd
 import textwrap
 import os
 
-master_file_path = 'Payment of Professional Fees 1.xlsx'
-address_file_path = 'DMC Master Data.csv' 
+master_file_path = 'Payment of Professional Fees 2.xlsx'
+address_file_path = 'DMC-Master-Data-1.csv' 
 sheet_names = ['REVISED PAYMENTS TO TRADERS']
 
 # '2022-23'
@@ -104,7 +104,7 @@ for sheet in sheet_names:
 
         # Introduction
         intro = doc.add_paragraph(
-            "Elixir Wealth Management Private Limited (hereinafter referred to as “the Company”) is a company incorporated under the erstwhile provisions of the Companies Act, 1956 carrying on the business of securities trading across various market segments."
+            "ELIXIR EQUITIES PVT. LTD (hereinafter referred to as “the Company”) is a company incorporated under the erstwhile provisions of the Companies Act, 1956 carrying on the business of securities trading across various market segments."
         )
         set_font(intro, font_name="Roboto", font_size=11)
 
@@ -143,7 +143,7 @@ for sheet in sheet_names:
         sign_table.style = 'Table Grid'
         sign_table.autofit = True
 
-        sign_table.cell(0, 0).text = "For Elixir Wealth Management Pvt. Ltd,\n\n\n\nDipan Mehta\nDirector"
+        sign_table.cell(0, 0).text = "For ELIXIR EQUITIES PVT. LTD,\n\n\n\nDipan Mehta\nDirector"
         sign_table.cell(0, 1).text = f"I Accept\n\n\n\nName: {current_trading_advisor} \nPAN : {current_trading_advisor_new['PAN'].iloc[0]}"
 
         set_table_font(sign_table, font_name="Roboto", font_size=11)
@@ -198,5 +198,5 @@ for sheet in sheet_names:
             # Apply font style to the entire table
             set_table_font(table, font_name="Roboto", font_size=12)
         
-        os.makedirs(f"EL-{year_folder}", exist_ok=True)
-        doc.save(f"EL-{year_folder}/Engagement_Letter_{current_trading_advisor}_{year_folder}.docx")
+        os.makedirs(f"EEPL-{year_folder}", exist_ok=True)
+        doc.save(f"EEPL-{year_folder}/Engagement_Letter_{current_trading_advisor}_{year_folder}.docx")
