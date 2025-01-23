@@ -44,7 +44,7 @@ def set_advisor_font(doc, advisor_name):
     print(f"Using font '{font_name}' for advisor: {advisor_name}")
     return font_name
 
-def add_consolidated_invoice_to_doc(doc, invoice_date, advisor, address, total_data, year_folder, font_name, is_first_page=False):
+def add_consolidated_invoice_to_doc(doc, invoice_date, advisor, address, total_data, year_folder, font_name,advisor_pan, is_first_page=False):
     if not is_first_page:
         doc.add_paragraph().add_run().add_break(WD_BREAK.PAGE)
 
@@ -125,7 +125,7 @@ Terms & Conditions:
 4) You are requested to pay total amount Net of TDS and arrange to send TDS certificate.
     """)
 
-    advisor_pan = total_data.iloc[0]['PAN'] if not pd.isna(total_data.iloc[0]['PAN']) else "PAN not found"
+    #advisor_pan = total_data.iloc[0]['PAN'] if not pd.isna(total_data.iloc[0]['PAN']) else "PAN not found"
     regards_para = doc.add_paragraph("Regards,")
     
     for _ in range(3):
@@ -180,6 +180,10 @@ def create_consolidated_invoices_for_advisor(grouped_data, address_data, year_fo
     
     font_name = set_advisor_font(doc, trading_advisor)  # Choose a font for the advisor
 
+    # Find the PAN for the trading advisor where the trading advisor is the payee
+    advisor_pan = grouped_data[grouped_data['PAYEE'] == trading_advisor]['PAN'].unique()
+    advisor_pan = advisor_pan[0] if len(advisor_pan) > 0 else "PAN not found"
+
     for idx, (invoice_date, date_group) in enumerate(grouped_data.groupby('Invoice Date')):
         first_row = date_group.iloc[0].copy()
     
@@ -194,8 +198,7 @@ def create_consolidated_invoices_for_advisor(grouped_data, address_data, year_fo
         
         # If the address is not found, try to split the 'TRADING ADVISOR' value and match the first and last name
         if len(address) == 0:
-            trading_advisor = first_row['TRADING ADVISOR']
-            trading_advisor_parts = trading_advisor.split()
+            trading_advisor_parts = first_row['TRADING ADVISOR'].split()
             if len(trading_advisor_parts) >= 2:
                 first_name = trading_advisor_parts[0]
                 last_name = trading_advisor_parts[-1]
@@ -211,7 +214,8 @@ def create_consolidated_invoices_for_advisor(grouped_data, address_data, year_fo
             total_data=date_group,
             year_folder=year_folder,
             font_name=font_name,
-            is_first_page=(idx == 0)
+            is_first_page=(idx == 0),
+            advisor_pan=advisor_pan
         )
 
         add_consolidated_annexure_a_to_doc(doc, date_group, font_name)
